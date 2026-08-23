@@ -6,7 +6,7 @@ Built from the official technical documentation specification: hybrid diagnostic
 
 ---
 
-## 🏗️ System Architecture & Workflow
+##  System Architecture & Workflow
 
 ```
 Captured Show Telemetry / Symptom
@@ -40,7 +40,7 @@ The rule checker always executes first. The LLM acts purely as a semantic fallba
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 netsage-ai/
@@ -77,7 +77,7 @@ netsage-ai/
 
 ---
 
-## 🚀 Quickstart & Setup
+##  Quickstart & Setup
 
 ### 1. Environment Setup
 ```bash
@@ -108,7 +108,7 @@ Access the interactive dashboard at `http://localhost:8501`.
 
 ---
 
-## 🧪 Automated Testing
+##  Automated Testing
 
 Run the full automated test suite using Python's standard `unittest` or `pytest`:
 
@@ -129,7 +129,7 @@ All 7 test suites validate:
 
 ---
 
-## 🛡️ Responsible AI & Human Oversight
+##  Responsible AI & Human Oversight
 
 NetSage AI is engineered specifically to prevent hallucinated or dangerous configuration changes:
 - **Destructive Command Interception**: Commands with large blast radiuses are automatically blocked.
@@ -139,7 +139,7 @@ NetSage AI is engineered specifically to prevent hallucinated or dangerous confi
 
 ---
 
-## 🎓 Packet Tracer Lab Demo (Scenario NET-001)
+##  Packet Tracer Lab Demo (Scenario NET-001)
 
 1. **Topology**: PC1 (VLAN 10) ── SW1 (Trunk) ── R1 (Router-on-a-Stick) ── Server1 (VLAN 30).
 2. **Failure**: Sub-interface `GigabitEthernet0/0.30` is administratively down. Ping from PC1 to Server1 fails.
