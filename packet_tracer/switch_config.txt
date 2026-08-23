@@ -1,0 +1,30 @@
+! SW1 — VLAN/trunk configuration for NetSage NET-001
+
+enable
+configure terminal
+hostname SW1
+
+vlan 10
+ name USERS
+vlan 30
+ name SERVERS
+
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ description PC1_VLAN10
+
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ description SERVER1_VLAN30
+
+interface FastEthernet0/24
+ switchport mode trunk
+ switchport trunk allowed vlan 10,30
+ description TRUNK_TO_R1
+
+end
+write memory

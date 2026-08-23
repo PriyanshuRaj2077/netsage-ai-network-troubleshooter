@@ -1,0 +1,26 @@
+! R1 — Router-on-a-stick configuration for NetSage NET-001
+! Apply this from the privileged EXEC prompt.
+
+enable
+configure terminal
+hostname R1
+
+interface GigabitEthernet0/0
+ no shutdown
+ description TRUNK_TO_SW1
+
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+ description VLAN10_GATEWAY
+ no shutdown
+
+interface GigabitEthernet0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+ description VLAN30_GATEWAY
+ ! INTENTIONAL FAULT FOR NET-001:
+ shutdown
+
+end
+write memory

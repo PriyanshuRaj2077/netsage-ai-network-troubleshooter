@@ -1,0 +1,23 @@
+# Python Bytecode and Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment Secrets
+.env
+.env.local
+.streamlit/secrets.toml
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp

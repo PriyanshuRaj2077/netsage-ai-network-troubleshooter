@@ -1,0 +1,23 @@
+{
+  "app_name": "NetSage AI",
+  "version": "1.0.1",
+  "llm": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "note": "Claude Sonnet 5 is the default model. Sampling parameters such as temperature are intentionally omitted because Sonnet 5 rejects non-default sampling parameters. Verify current model availability before production use."
+  },
+  "thresholds": {
+    "checker_runs_first": true,
+    "min_confidence_for_auto_flag": 0.75
+  },
+  "paths": {
+    "cases_csv": "data/cases.csv",
+    "prompt_template": "prompts/diagnose_prompt.md",
+    "audit_log": "docs/model_audit_log.md"
+  },
+  "execution": {
+    "require_human_approval": true,
+    "allow_direct_deployment": false
+  }
+}

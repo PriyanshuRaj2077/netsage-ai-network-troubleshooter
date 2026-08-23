@@ -1,0 +1,19 @@
+NET-001 demo input for NetSage AI
+
+Symptom:
+PC1 cannot reach Server1 in VLAN 30.
+
+Topology Note:
+PC1 is connected to SW1 in VLAN 10. Server1 is connected to SW1 in VLAN 30. SW1 Fa0/24 is a trunk to R1 Gi0/0. R1 performs inter-VLAN routing using sub-interfaces.
+
+Captured show output:
+GigabitEthernet0/0.10 is up, line protocol is up
+GigabitEthernet0/0.30 is administratively down, line protocol is down
+
+Expected diagnosis:
+The VLAN 30 router sub-interface is administratively shut down.
+
+Expected remediation:
+configure terminal
+interface GigabitEthernet0/0.30
+no shutdown

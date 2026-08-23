@@ -1,0 +1,193 @@
+case_id,symptom,topology_note,osi_layer,concept_tag,severity,show_outputs,expected_fault
+NET-001,PC1 cannot reach Server1 in VLAN 30,PC1 on Fa0/1 (VLAN 10); Server1 on Fa0/2 (VLAN 30); R1 uses Gi0/0.10 and Gi0/0.30 as router-on-a-stick gateways.,Layer 1 / Layer 2,Inter-VLAN Routing,High,"GigabitEthernet0/0.10 is up, line protocol is up
+GigabitEthernet0/0.30 is administratively down, line protocol is down
+",Sub-interface administratively down
+NET-002,Hosts on VLAN 1 intermittently lose connectivity across the SW1-SW2 uplink,SW1 Fa0/1 and SW2 Fa0/2 form the inter-switch trunk,Layer 2,VLAN Trunking,Medium,"SW1#show interfaces trunk
+Port        Mode         Encapsulation  Status        Native vlan
+Fa0/1       on           802.1q         trunking      1
+%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on FastEthernet0/1 (1), with SW2 FastEthernet0/2 (99)
+",Native VLAN mismatch on trunk link
+NET-003,Two PCs that should both be on VLAN 10 cannot reach each other after a new access switch was added,New switch SW3 connects to SW1 via a trunk; PCs are on SW3 Fa0/2 and Fa0/3,Layer 2,VLAN Configuration,High,"SW3(config)#interface fastEthernet 0/2
+SW3(config-if)#switchport access vlan 10
+%% VLAN 10 not found in current VLAN database. Trying to create VLAN.
+",VLAN not present in VLAN database on SW3
+NET-004,PC on VLAN 30 can reach its own subnet but cannot reach hosts on VLAN 40 across the SW2-SW3 trunk,VLAN 40 was recently added; trunk between SW2 and SW3 predates it,Layer 2,VLAN Trunking,Medium,"SW2#show interfaces gi0/1 switchport
+Name: Gi0/1
+Administrative Mode: trunk
+Trunking VLANs Enabled: 1,10,20,30
+VLAN 40 is not allowed on this trunk
+",VLAN 40 pruned from trunk allowed list
+NET-005,R1 and R2 are not exchanging any routes over the shared WAN link,"R1 Gi0/1 and R2 Gi0/1 share the 172.16.0.0/30 transit link, both configured for OSPF area 0",Layer 3,Dynamic Routing (OSPF),High,"R1#show ip ospf neighbor
+
+R1#
+",No OSPF neighbor relationship formed (area/network statement mismatch)
+NET-006,A branch-office PC cannot reach the HQ file server,Branch router R2 connects to HQ router R1 over a point-to-point serial link; no dynamic routing protocol is running,Layer 3,Static Routing,High,"R2#ping 10.0.50.10
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.0.50.10, timeout is 2 seconds:
+UUUUU
+Success rate is 0 percent (0/5)
+% Network is unreachable
+",Missing static route to HQ subnet on branch router
+NET-007,Internal hosts can ping each other but cannot reach any Internet address,"R1 Gi0/0 faces the internal LAN, Gi0/1 faces the ISP; NAT overload is intended on Gi0/1",Layer 3,NAT,High,"R1#show ip nat translations
+Pro Inside global      Inside local       Outside local      Outside global
+R1#
+",No active NAT translations (inside/outside interface roles likely misapplied)
+NET-008,New laptops added to the VLAN 10 lab are not receiving IP addresses,Router-based DHCP pool DHCP-VLAN10 serves the lab; pool was sized for the original 20 devices,Layer 7 (Service),DHCP,Medium,"R1#show ip dhcp pool DHCP-VLAN10
+Pool DHCP-VLAN10 :
+ Utilization mark (high/low)    : 100 / 0
+ Subnet size (first/last)       : 0 / 0
+ Total addresses                : 20
+ Leased addresses               : 20
+ 0 leases available
+",DHCP pool exhausted
+NET-009,A lab PC lost all network access immediately after being swapped out for a different laptop,Port Fa0/5 on SW1 has port security configured with a single sticky MAC allowed,Layer 2,Port Security,Medium,"SW1#show interfaces fastEthernet 0/5 status
+Port      Name               Status       Vlan       Duplex  Speed Type
+Fa0/5                        err-disabled 10           auto   auto 10/100BaseTX
+%PM-4-ERR_DISABLE: psecure-violation error detected on Fa0/5, putting Fa0/5 in err-disable state
+",Port security violation placed Fa0/5 in err-disabled state
+NET-010,File transfers between SW1 and SW2 are extremely slow and show interface errors,SW1 Gi0/1 connects directly to SW2 Gi0/1 with a single copper link,Layer 1,Physical Layer,Low,"SW1#show interfaces gi0/1
+GigabitEthernet0/1 is up, line protocol is up
+  Full-duplex, 100Mb/s
+%CDP-4-DUPLEX_MISMATCH: duplex mismatch discovered on GigabitEthernet0/1 (not full duplex), with SW2 GigabitEthernet0/1 (full duplex)
+",Duplex mismatch between SW1 and SW2 uplink ports
+NET-011,A multilayer switch with correctly configured SVIs is not routing between any VLANs,"SW-CORE has SVIs for VLAN 10, 20, and 30, each with a valid IP address",Layer 3,Inter-VLAN Routing,High,"SW-CORE#show ip protocols
+IP routing: is disabled
+SW-CORE#show ip interface brief | include Vlan
+Vlan10                  10.0.10.1       YES manual up                    up
+Vlan20                  10.0.20.1       YES manual up                    up
+",IP routing globally disabled on the multilayer switch
+NET-012,PC4 has a valid IP address but cannot reach anything outside its own subnet,"PC4 connects through SW2 Fa0/3 to R1 Fa0/0, a directly connected point-to-point link (no switch in between)",Layer 1 / Layer 2,IP Addressing,Medium,"R1#show interfaces fastEthernet 0/0
+FastEthernet0/0 is up, line protocol is down
+  Encapsulation ARPA, loopback not set
+","Line protocol down, likely encapsulation or Layer 2 mismatch with the connected switch port"
+NET-013,PC1 experiences intermittent connection dropouts and IP conflict warnings,PC1 (192.168.10.50) on VLAN 10; Gateway on R1 Gi0/0.10 (192.168.10.1),Layer 3,IP Addressing,High,"R1#show logging
+%IP-4-DUPADDR: Duplicate address 192.168.10.50 on GigabitEthernet0/0.10, sourced by 0001.96a2.bc01
+",Duplicate IP address conflict detected on the subnet
+NET-014,ACL 101 is blocking legitimate HTTP traffic from the 192.168.10.0/24 subnet to Server1,"ACL 101 is applied inbound on R1 Gi0/0, which faces the 192.168.10.0/24 subnet",Layer 3 / Layer 4,Access Control Lists,High,"R1#show access-lists 101
+Extended IP access list 101
+    10 deny ip 192.168.10.0 255.255.255.0 any
+    20 permit ip any any
+","ACL uses a subnet mask (255.255.255.0) instead of a wildcard mask (0.0.0.255), so it matches only one host instead of the intended /24 — combined with an implicit early deny, legitimate traffic is blocked"
+NET-015,The redundant links between SW1 and SW2 are not bundling into an EtherChannel,"Two Gi links (Gi0/1, Gi0/2) connect SW1 and SW2 directly, intended to form Port-channel1",Layer 2,EtherChannel,Medium,"SW1#show etherchannel summary
+Group  Port-channel  Protocol    Ports
+1      Po1(SD)       LACP        Gi0/1(D)  Gi0/2(D)
+SW1#show running-config interface range gi0/1 - 2 | include channel-group
+ channel-group 1 mode active
+SW2#show running-config interface range gi0/1 - 2 | include channel-group
+ channel-group 1 mode on
+","Channel-group mode mismatch — SW1 uses LACP 'active', SW2 uses static 'on', which are incompatible negotiation modes"
+NET-016,"When the active router fails, the standby router never takes over the virtual IP","R1 (priority 150) and R2 (priority 100) share HSRP group 1 on the 10.0.1.0/24 LAN, virtual IP 10.0.1.1",Layer 3,First Hop Redundancy (HSRP),Medium,"R2#show standby brief
+                     P indicates configured to preempt.
+Interface   Grp  Pri P State    Active          Standby         Virtual IP
+Gi0/0       1    100   Standby  10.0.1.2        local           10.0.1.1
+","Preempt is not enabled on the HSRP group, so R2 never reclaims active role even after R1 recovers or fails permanently"
+NET-017,Remote PCs on VLAN 50 receive a valid IP address from DHCP but cannot leave the subnet,Router-based DHCP pool DHCP-VLAN50 serves 10.0.50.0/24; SVI Vlan50 has address 10.0.50.1,Layer 3 / Layer 7,IP Addressing,Medium,"R1#show ip dhcp pool DHCP-VLAN50
+Pool DHCP-VLAN50 :
+ Network                        : 10.0.50.0 /24
+ Default router                 : 10.0.50.254
+ Lease time                     : 1 days
+",DHCP pool advertises the wrong default-router address (10.0.50.254 instead of the SVI's actual address 10.0.50.1)
+NET-018,R1 and R3 sit on the same LAN segment but are not learning routes from each other via RIP,R1 and R3 both run 'router rip' on the shared 10.0.99.0/24 segment,Layer 3,RIP,Medium,"R1#show ip protocols | include version
+  Sending updates every 30 seconds, next due in 24 seconds
+  Invalid after 180 seconds, hold down 180, flushed after 240
+  Default version control: send version 1, receive version 1
+R3#show ip protocols | include version
+  Default version control: send version 2, receive version 2
+",RIP version mismatch between R1 (v1) and R3 (v2) prevents updates from being processed
+NET-019,A VLAN created on SW1 is not appearing in the VLAN database of any other switch in the domain,"SW1, SW2, and SW3 are all connected via trunks and share VTP domain 'CAMPUS'",Layer 2,VTP,Medium,"SW1#show vtp status | include Mode|Domain
+VTP Operating Mode                : Server
+VTP Domain Name                    : CAMPUS
+SW2#show vtp status | include Mode|Domain
+VTP Operating Mode                : Transparent
+VTP Domain Name                    : CAMPUS
+","SW2 is in VTP transparent mode, so it does not learn or forward VLAN database updates from SW1"
+NET-020,A web server with a static NAT entry is unreachable from outside the network,Server1 (10.0.10.10) has a static NAT mapping to public IP 203.0.113.10 on R1,Layer 3,NAT,High,"R1#show running-config | include ip nat|interface Gi
+interface GigabitEthernet0/0
+ ip nat outside
+interface GigabitEthernet0/1
+ ip nat inside
+ip nat inside source static 10.0.10.10 203.0.113.10
+",Inside/outside NAT roles are reversed — Gi0/0 (the internal LAN interface) is marked 'ip nat outside' and Gi0/1 (the ISP-facing interface) is marked 'ip nat inside'
+NET-021,PCs in the newly created VLAN 60 receive a self-assigned 169.254.x.x address,DHCP for VLAN 60 is centrally hosted on R1; SVI Vlan60 lives on multilayer switch SW-CORE,Layer 3 / Layer 7,DHCP Relay,High,"SW-CORE#show running-config interface vlan 60
+interface Vlan60
+ ip address 10.0.60.1 255.255.255.0
+","Missing 'ip helper-address' on the Vlan60 SVI, so DHCP DISCOVER broadcasts never reach the centralized DHCP server"
+NET-022,Hosts intermittently see duplicate or looping routes between the OSPF core and the RIP-based branch network,R1 redistributes RIP routes into OSPF and OSPF routes into RIP on the boundary router,Layer 3,Route Redistribution,High,"R1#show running-config | section router
+router ospf 1
+ redistribute rip subnets
+router rip
+ redistribute ospf 1 metric 1
+",Two-way redistribution with no route filtering or tagging creates a feedback loop between the OSPF and RIP domains
+NET-023,"One host on SW1 can reach the file server, but its neighbor on the same switch cannot",Both hosts are on SW1 VLAN 20; the file server ACL is applied on the SW1 SVI,Layer 3 / Layer 4,Access Control Lists,High,"SW1#show ip access-lists
+Extended IP access list FILESERVER-ACL
+    10 permit ip host 10.0.20.11 host 10.0.20.100
+    20 deny ip any host 10.0.20.100
+SW1#show running-config interface vlan 20 | include access-group
+ ip access-group FILESERVER-ACL in
+",ACL only permits a single host (10.0.20.11) to reach the file server; every other host in VLAN 20 is caught by the explicit deny
+NET-024,A specific host (10.0.77.5) is unreachable even though R1 has a working default route,R1's default route points to the ISP; 10.0.77.0/24 is a newly added internal subnet behind R2,Layer 3,Routing,Medium,"R1#show ip route | include Gateway|0.0.0.0/0
+Gateway of last resort is 198.51.100.1 to network 0.0.0.0
+S*   0.0.0.0/0 [1/0] via 198.51.100.1
+","No specific route to the new 10.0.77.0/24 subnet exists, so traffic to it is sent to the default route (ISP) instead of toward R2"
+NET-025,Two devices with static IPs on what should be the same subnet cannot communicate at all,PC-A and PC-B are both cabled to SW1 VLAN 30 with static IP addresses in the 10.0.30.0/24 range,Layer 3,IP Addressing,Medium,"PC-A> show ip
+IP Address......................: 10.0.30.11
+Subnet Mask......................: 255.255.255.0
+PC-B> show ip
+IP Address......................: 10.0.30.12
+Subnet Mask......................: 255.255.255.128
+",Subnet mask mismatch between PC-A (/24) and PC-B (/25) places them in different logical subnets despite being on the same VLAN
+NET-026,The serial link between R1 and R2 shows up/up on both ends but no traffic passes across it,R1 Se0/0/0 and R2 Se0/0/0 form a leased-line point-to-point WAN link,Layer 2,WAN / Layer 2,High,"R1#show interfaces serial 0/0/0 | include line protocol|Encapsulation
+Serial0/0/0 is up, line protocol is up
+  Encapsulation PPP, loopback not set
+R2#show interfaces serial 0/0/0 | include line protocol|Encapsulation
+Serial0/0/0 is up, line protocol is up
+  Encapsulation HDLC, loopback not set
+",Encapsulation mismatch between the two ends of the serial link (PPP on R1 vs HDLC on R2) — this can leave the link nominally 'up/up' while dropping all higher-layer traffic
+NET-027,Devices plugged into VLAN 20 are being handed IP addresses from the VLAN 30 pool,DHCP-VLAN20 and DHCP-VLAN30 are configured as separate pools on R1,Layer 3 / Layer 7,DHCP,Medium,"R1#show running-config | section ip dhcp pool
+ip dhcp pool DHCP-VLAN20
+ network 10.0.20.0 255.255.254.0
+ip dhcp pool DHCP-VLAN30
+ network 10.0.30.0 255.255.255.0
+","DHCP-VLAN20's network statement uses a /23 mask, overlapping into the 10.0.21.0/24 range and effectively also covering addresses meant for VLAN 30's neighboring segment"
+NET-028,"The spanning-tree root bridge keeps flapping between the two core switches, causing brief outages",SW-CORE1 and SW-CORE2 are both connected redundantly at the distribution layer,Layer 2,Spanning Tree,Medium,"SW-CORE1#show spanning-tree vlan 1 | include Priority|Address
+             Priority    32768
+             Address     0011.2233.4455
+SW-CORE2#show spanning-tree vlan 1 | include Priority|Address
+             Priority    32768
+             Address     0011.2233.aabb
+","Neither core switch has an explicit spanning-tree priority set, so both use the default 32768 and the root bridge election falls back to the lowest MAC address, which can shift the perceived root as the topology changes"
+NET-029,A link between SW1 and SW2 intermittently behaves like an access port instead of carrying multiple VLANs,SW1 Gi0/2 and SW2 Gi0/2 connect the two switches and are expected to trunk all VLANs,Layer 2,Layer 2 Misconfiguration,Low,"SW1#show interfaces gi0/2 switchport | include Administrative Mode|Operational Mode
+Administrative Mode: dynamic desirable
+Operational Mode: trunk
+SW2#show interfaces gi0/2 switchport | include Administrative Mode|Operational Mode
+Administrative Mode: dynamic auto
+Operational Mode: static access
+","Both ends are left in DTP negotiation modes (desirable/auto) instead of hard-set 'trunk', and SW2 negotiated down to access mode"
+NET-030,PC on VLAN 10 can ping internal IP 192.168.10.1 but cannot resolve intranet URL 'server.corp.local',DNS server is at 192.168.10.250; DHCP pool DHCP-VLAN10 provides IP configuration,Layer 7 (Service),DNS,High,"PC1> ipconfig /all
+IP Address......................: 192.168.10.15
+Default Gateway.................: 192.168.10.1
+DNS Servers.....................: 192.168.99.254
+R1#show running-config | section ip dhcp pool DHCP-VLAN10
+ip dhcp pool DHCP-VLAN10
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.1
+ dns-server 192.168.99.254
+",DHCP pool advertises non-existent DNS server IP (192.168.99.254 instead of actual DNS server 192.168.10.250)
+NET-031,Guest Wi-Fi users can ping and open web services on internal accounting servers in VLAN 20,Guest Wi-Fi is mapped to VLAN 50; Corporate servers live in VLAN 20; Guest isolation ACL intended on R1 Gi0/0.50,Layer 3 / Layer 4,Wireless & Security,High,"R1#show ip interface GigabitEthernet0/0.50 | include Inbound access list
+  Inbound access list is not set
+R1#show access-lists GUEST-RESTRICT
+Standard IP access list GUEST-RESTRICT
+    10 deny 192.168.20.0 0.0.0.255
+    20 permit any
+",Guest isolation ACL 'GUEST-RESTRICT' is defined on R1 but was never applied inbound on sub-interface GigabitEthernet0/0.50
+NET-032,SSH connections to R2 are refused even though VTY lines are configured for SSH,R2's VTY 0 4 lines specify 'transport input ssh',Layer 7 (Service),Remote Access (SSH),Low,"R2#show ip ssh
+%SSH has not been enabled
+SSH Disabled - version 1.99
+","SSH was never actually enabled on R2, most likely because 'ip domain-name' was never set and RSA keys were never generated with 'crypto key generate rsa'"
+NET-033,Telnet to SW1 from the management PC is immediately refused,SW1 has a management VLAN 99 SVI reachable from the management PC,Layer 7 (Service),Remote Access / Security,Low,"SW1#telnet 10.0.99.5
+Trying 10.0.99.5 ...
+% Connection refused by remote host
+SW1#show running-config | section line vty
+line vty 0 4
+ transport input telnet
+","VTY lines have no 'password' or 'login' configuration, so Cisco IOS refuses incoming connections by default rather than allowing unauthenticated access"
